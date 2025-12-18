@@ -88,6 +88,7 @@ public class Main {
         OnePlaceSemaphore semaphore = new OnePlaceSemaphore();
         Generator generator = new Generator(task, semaphore);
         Integrator integrator = new Integrator(task, semaphore);
+        System.out.println("[complicatedThreads] start");
         generator.start();
         integrator.start();
 
@@ -106,5 +107,6 @@ public class Main {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        System.out.println("[complicatedThreads] finished (threads interrupted and joined)");
     }
 }

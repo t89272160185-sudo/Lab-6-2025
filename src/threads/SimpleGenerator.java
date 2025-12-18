@@ -23,7 +23,12 @@ public class SimpleGenerator implements Runnable {
             double step = Math.max(1e-3, random.nextDouble()); // avoid zero step
 
             // Single synchronized block keeps parameters consistent.
-            task.update(function, left, right, step);
+            try {
+                task.produce(function, left, right, step);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
             System.out.printf("Source %.4f %.4f %.6f%n", left, right, step);
         }
     }

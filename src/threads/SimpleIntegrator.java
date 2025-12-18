@@ -11,9 +11,8 @@ public class SimpleIntegrator implements Runnable {
 
     @Override
     public void run() {
-        long lastVersion = -1;
         for (int i = 0; i < task.getTasksCount(); i++) {
-            Task.TaskData data = awaitNextData(lastVersion);
+            Task.TaskData data = awaitNextData();
             if (data == null) {
                 return;
             }
@@ -30,20 +29,15 @@ public class SimpleIntegrator implements Runnable {
                     data.step(),
                     result
             );
-            lastVersion = data.version();
         }
     }
 
-    private Task.TaskData awaitNextData(long lastVersion) {
-        while (true) {
-            Task.TaskData data = task.snapshot();
-            if (data.function() != null && data.version() != lastVersion) {
-                return data;
-            }
-            if (Thread.currentThread().isInterrupted()) {
-                return null;
-            }
-            Thread.yield();
+    private Task.TaskData awaitNextData() {
+        try {
+            return task.consume();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
         }
     }
 }

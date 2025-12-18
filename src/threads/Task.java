@@ -12,12 +12,36 @@ public class Task {
     private volatile double step;
     private int tasksCount;
     private volatile long version;
+    private boolean ready;
 
     public Task(int tasksCount) {
         setTasksCount(tasksCount);
     }
 
     public synchronized void update(Function function, double leftBorder, double rightBorder, double step) {
+        updateRaw(function, leftBorder, rightBorder, step);
+    }
+
+    public synchronized void produce(Function function, double leftBorder, double rightBorder, double step) throws InterruptedException {
+        while (ready) {
+            wait();
+        }
+        updateRaw(function, leftBorder, rightBorder, step);
+        ready = true;
+        notifyAll();
+    }
+
+    public synchronized TaskData consume() throws InterruptedException {
+        while (!ready) {
+            wait();
+        }
+        TaskData data = new TaskData(function, leftBorder, rightBorder, step, version);
+        ready = false;
+        notifyAll();
+        return data;
+    }
+
+    private void updateRaw(Function function, double leftBorder, double rightBorder, double step) {
         this.function = function;
         this.leftBorder = leftBorder;
         this.rightBorder = rightBorder;
